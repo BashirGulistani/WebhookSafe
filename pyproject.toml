@@ -6,3 +6,8 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "webhooksieve"
 version = "0.1.0"
+description = "Idempotency + dedupe + persistence for webhooks (SQLite-based). Includes FastAPI middleware and CLI."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "WebhookSieve Contributors" }]
