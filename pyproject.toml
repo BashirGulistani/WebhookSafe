@@ -11,3 +11,15 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "WebhookSieve Contributors" }]
+keywords = ["webhooks", "idempotency", "dedupe", "fastapi", "sqlite", "stripe", "shopify"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent"
+]
+
+[project.scripts]
+webhooksieve = "webhooksieve.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
