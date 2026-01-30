@@ -94,4 +94,50 @@ class SQLiteReceiptStore:
 
 
 
+    def mark_processed(self, provider: str, event_id: str) -> None:
+        with self._connect() as conn:
+            conn.execute(
+                "UPDATE receipts SET status=?, last_error=?, last_seen_at=? WHERE provider=? AND event_id=?",
+                ("processed", None, utcnow().isoformat(), provider, event_id),
+            )
+            conn.commit()
+
+    def mark_failed(self, provider: str, event_id: str, error: str) -> None:
+        with self._connect() as conn:
+            conn.execute(
+                "UPDATE receipts SET status=?, last_error=?, last_seen_at=? WHERE provider=? AND event_id=?",
+                ("failed", (error or "")[:2000], utcnow().isoformat(), provider, event_id),
+            )
+            conn.commit()
+
+    def prune_expired(self) -> int:
+        now = utcnow()
+        deleted = 0
+        with self._connect() as conn:
+            cur = conn.execute(
+                "SELECT provider,event_id,last_seen_at,ttl_seconds FROM receipts"
+            )
+            rows = cur.fetchall()
+            expired = []
+            for provider, event_id, last_seen_at, ttl_seconds in rows:
+                last_dt = datetime.fromisoformat(last_seen_at)
+                if last_dt + timedelta(seconds=int(ttl_seconds)) < now:
+                    expired.append((provider, event_id))
+
+            for provider, event_id in expired:
+                conn.execute("DELETE FROM receipts WHERE provider=? AND event_id=?", (provider, event_id))
+                deleted += 1
+            conn.commit()
+        return deleted
+
+    def list_recent(self, limit: int = 50) -> list[Receipt]:
+        with self._connect() as conn:
+            cur = conn.execute(
+                "SELECT provider,event_id,first_seen_at,last_seen_at,seen_count,status,last_error,ttl_seconds "
+                "FROM receipts ORDER BY last_seen_at DESC LIMIT ?",
+                (limit,),
+            )
+            return [self._row_to_receipt(r) for r in cur.fetchall()]
+
+
 
