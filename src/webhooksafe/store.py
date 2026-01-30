@@ -11,3 +11,19 @@ def utcnow() -> datetime:
 
 
 
+class SQLiteReceiptStore:
+
+    def __init__(self, db_path: str = "webhooksieve.db") -> None:
+        self.db_path = db_path
+        self._init_db()
+
+    def _connect(self) -> sqlite3.Connection:
+        conn = sqlite3.connect(self.db_path)
+        conn.execute("PRAGMA journal_mode=WAL;")
+        conn.execute("PRAGMA synchronous=NORMAL;")
+        return conn
+
+
+
+
+
