@@ -20,5 +20,23 @@ EventIdExtractor = Callable[[bytes, dict], str]
 
 
 
+class WebhookSieve:
+    """
+    Core engine:
+    - verify signature (optional)
+    - extract event_id
+    - write/lookup receipt
+    - decide accept/duplicate
+    """
+
+    def __init__(
+        self,
+        *,
+        store: SQLiteReceiptStore,
+        provider: str,
+        event_id_extractor: EventIdExtractor,
+        signature_verifier: Optional[SignatureVerifier] = None,
+        ttl_seconds: int = 7 * 24 * 3600,
+        accept_retries_after_failure: bool = True,
 
 
