@@ -18,5 +18,22 @@ def main() -> None:
 
 
 
+    p_get = sub.add_parser("get", help="Get one receipt")
+    p_get.add_argument("provider")
+    p_get.add_argument("event_id")
+
+    p_prune = sub.add_parser("prune", help="Prune expired receipts")
+
+    args = ap.parse_args()
+    store = SQLiteReceiptStore(args.db)
+
+    if args.cmd == "list":
+        items = store.list_recent(limit=args.limit)
+        for r in items:
+            print(
+                f"{r.last_seen_at.isoformat()}  {r.provider}:{r.event_id}  "
+                f"seen={r.seen_count}  status={r.status}"
+            )
+
 
 
