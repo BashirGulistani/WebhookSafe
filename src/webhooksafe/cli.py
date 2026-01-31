@@ -36,4 +36,20 @@ def main() -> None:
             )
 
 
+    elif args.cmd == "get":
+        r = store.get(args.provider, args.event_id)
+        if not r:
+            print("Not found.")
+            return
+        print(f"provider: {r.provider}")
+        print(f"event_id: {r.event_id}")
+        print(f"first_seen_at: {r.first_seen_at.isoformat()}")
+        print(f"last_seen_at: {r.last_seen_at.isoformat()}")
+        print(f"seen_count: {r.seen_count}")
+        print(f"status: {r.status}")
+        print(f"last_error: {r.last_error}")
+        print(f"ttl_seconds: {r.ttl_seconds}")
 
+    elif args.cmd == "prune":
+        n = store.prune_expired()
+        print(f"Deleted {n} expired receipts.")
