@@ -20,3 +20,36 @@ It also tracks status (processed / failed), counts duplicates, and exposes a sma
 
 ```bash
 pip install -e .
+
+
+
+
+from fastapi import FastAPI, Request
+from webhooksieve import WebhookSieve, SQLiteReceiptStore
+from webhooksieve.middleware_fastapi import WebhookSieveMiddleware
+
+def extract_event_id(raw: bytes, headers: dict) -> str:
+    import json
+    obj = json.loads(raw.decode("utf-8"))
+    return str(obj.get("id", ""))
+
+store = SQLiteReceiptStore("webhooksieve.db")
+sieve = WebhookSieve(
+    store=store,
+    provider="stripe",
+    event_id_extractor=extract_event_id,
+    signature_verifier=None,   # plug yours in
+    ttl_seconds=7*24*3600,
+)
+
+app = FastAPI()
+app.add_middleware(WebhookSieveMiddleware, sieve=sieve, duplicate_status_code=200)
+
+@app.post("/webhooks/stripe")
+async def stripe_webhook(request: Request):
+    payload = await request.json()
+
+    # do your work...
+    # if success:
+    sieve.mark_processed(payload["id"])
+    return {"ok": True}
